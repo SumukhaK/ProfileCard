@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ProfileCardTheme {
-                MainScreen()
+                MainScreen(userProfileList)
             }
         }
     }
@@ -36,17 +36,16 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun MainScreen() {
+fun MainScreen(userProfiles: List<UserProfile>) {
     Scaffold(topBar = { AppBar() }) {
         Surface(modifier = Modifier
             .fillMaxSize()
             .padding(it)) {
             Column {
-                ProfileCard(userProfileList[0])
-                ProfileCard(userProfileList[1])
-                ProfileCard(userProfileList[2])
+                for(user in userProfileList){
+                    ProfileCard(user)
+                }
             }
-
         }
     }
 }
@@ -98,16 +97,19 @@ fun ProfilePicture(drawableId:Int,status:Boolean){
 fun ProfileContent(userName:String,onlineStatus:Boolean){
     Column(
         Modifier.fillMaxWidth()) {
-
-        Text(text = userName, style = MaterialTheme.typography.h5)
+        if(!onlineStatus){
+            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                Text(text = userName, style = MaterialTheme.typography.h5)
+            }
+        }else{
+            Text(text = userName, style = MaterialTheme.typography.h5)
+        }
 
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
 
             Text(text = if(onlineStatus)"Active Now" else "Offline", style = MaterialTheme.typography.body2)
 
-
         }
-
     }
 }
 
@@ -115,6 +117,6 @@ fun ProfileContent(userName:String,onlineStatus:Boolean){
 @Composable
 fun DefaultPreview() {
     ProfileCardTheme {
-        MainScreen()
+        MainScreen(userProfileList)
     }
 }
