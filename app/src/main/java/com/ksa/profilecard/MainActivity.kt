@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,30 +15,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.ksa.profilecard.ui.theme.LighterGreen
 import com.ksa.profilecard.ui.theme.ProfileCardTheme
-import com.ksa.profilecard.ui.theme.lightGreen
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ProfileCardTheme {
-                MainScreen(userProfileList)
+                UsersListScreen(userProfileList)
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(userProfiles: List<UserProfile>) {
+fun UsersListScreen(userProfiles: List<UserProfile>) {
     Scaffold(topBar = { AppBar() }) {
         Surface(modifier = Modifier
             .fillMaxSize()
@@ -73,14 +71,14 @@ fun ProfileCard(userProfile: UserProfile){
         Row(modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start) {
-            ProfilePicture(userProfile.pictureUrl,userProfile.status)
-            ProfileContent(userProfile.name,userProfile.status)
+            ProfilePicture(userProfile.pictureUrl,userProfile.status,72.dp)
+            ProfileContent(userProfile.name,userProfile.status, Alignment.Start)
         }
     }
 }
 
 @Composable
-fun ProfilePicture(drawableURL:String,status:Boolean){
+fun ProfilePicture(drawableURL:String,status:Boolean, imageSize : Dp){
     Card(shape = CircleShape,
         border = BorderStroke(width = 2.dp,color = if(status)
             LighterGreen
@@ -88,13 +86,13 @@ fun ProfilePicture(drawableURL:String,status:Boolean){
         ),
         modifier = Modifier.padding(8.dp),
         elevation = 4.dp) {
-      /*  Image(painter = painterResource(id = drawableId),
-            modifier = Modifier.size(72.dp),
-            contentDescription = "Profile Picture",
-            contentScale = ContentScale.Crop)*/
+        /*  Image(painter = painterResource(id = drawableId),
+              modifier = Modifier.size(72.dp),
+              contentDescription = "Profile Picture",
+              contentScale = ContentScale.Crop)*/
         AsyncImage(
-             model = drawableURL,
-            modifier = Modifier.size(72.dp),
+            model = drawableURL,
+            modifier = Modifier.size(imageSize),
             contentScale = ContentScale.FillBounds,
             contentDescription = "Profile Picture",
         )
@@ -102,9 +100,9 @@ fun ProfilePicture(drawableURL:String,status:Boolean){
 }
 
 @Composable
-fun ProfileContent(userName:String,onlineStatus:Boolean){
-    Column(
-        Modifier.fillMaxWidth()) {
+fun ProfileContent(userName:String,onlineStatus:Boolean,alignment: Alignment.Horizontal){
+    Column(modifier = Modifier.padding(8.dp),
+        horizontalAlignment = alignment) {
         if(!onlineStatus){
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                 Text(text = userName, style = MaterialTheme.typography.h5)
@@ -125,6 +123,24 @@ fun ProfileContent(userName:String,onlineStatus:Boolean){
 @Composable
 fun DefaultPreview() {
     ProfileCardTheme {
-        MainScreen(userProfileList)
+        UserProfileDetailsPage()
+    }
+}
+
+@Composable
+fun UserProfileDetailsPage(userProfile: UserProfile = userProfileList[0]) {
+    Scaffold(topBar = { AppBar() }) {
+        Surface(modifier = Modifier
+            .fillMaxSize()
+            .padding(it)) {
+
+            Column(modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top) {
+
+                ProfilePicture(drawableURL = userProfile.pictureUrl, status =userProfile.status,240.dp)
+                ProfileContent(userName = userProfile.name, onlineStatus = userProfile.status,Alignment.CenterHorizontally)
+            }
+        }
     }
 }
