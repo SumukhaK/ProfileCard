@@ -3,6 +3,7 @@
 package com.ksa.profilecard
 
 import android.os.Bundle
+import android.service.autofill.OnClickAction
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -13,18 +14,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -50,8 +52,10 @@ class MainActivity : ComponentActivity() {
             composable("user_list"){
                 UsersListScreen(navController)
             }
-            composable("user_details"){
-                UserProfileDetailsPage(userProfileList[0],navController)
+            composable("user_details/{userId}", arguments = listOf(navArgument("userId"){
+                type = NavType.IntType
+            })){navBackStackEntry ->
+                UserProfileDetailsPage(navBackStackEntry.arguments!!.getInt("userId"),navController)
             }
 
         }
@@ -60,14 +64,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun UsersListScreen(navController: NavHostController) {
-    Scaffold(topBar = { AppBar() }) {
+    Scaffold(topBar = { AppBar(title = "User List",
+        icon = Icons.Default.Home){
+
+    } }) {
         Surface(modifier = Modifier
             .fillMaxSize()
             .padding(it)) {
             LazyColumn() {
                 items(userProfileList){ userProfile ->
                     ProfileCard(userProfile = userProfile){
-                        navController.navigate("user_details")
+                        navController.navigate("user_details/${userProfile.id}")
                     }
                 }
             }
@@ -76,10 +83,13 @@ fun UsersListScreen(navController: NavHostController) {
 }
 
 @Composable
-fun AppBar(){
-    TopAppBar(navigationIcon = {Icon(Icons.Default.Home,"",
-        Modifier.padding(horizontal = 12.dp))},
-        title ={ Text(text = "Messaging Application") })
+fun AppBar(title : String, icon: ImageVector, iconClickAction: () -> Unit){
+    TopAppBar(
+        navigationIcon = {Icon(icon,"",
+            Modifier.padding(horizontal = 12.dp)
+                .clickable(onClick =  {iconClickAction.invoke()})
+        )},
+        title ={ Text(text = title) })
 }
 
 @Composable
@@ -146,8 +156,14 @@ fun ProfileContent(userName:String,onlineStatus:Boolean,alignment: Alignment.Hor
 
 
 @Composable
-fun UserProfileDetailsPage(userProfile: UserProfile = userProfileList[0],navController: NavHostController) {
-    Scaffold(topBar = { AppBar() }) {
+fun UserProfileDetailsPage(userId:Int,navController: NavHostController) {
+    val userProfile = userProfileList.first{userProfile ->
+        userId == userProfile.id
+    }
+    Scaffold(topBar = { AppBar(title = "User Details",
+        icon = Icons.Default.ArrowBack){
+        navController.navigateUp()
+    } }) {
         Surface(modifier = Modifier
             .fillMaxSize()
             .padding(it)) {
